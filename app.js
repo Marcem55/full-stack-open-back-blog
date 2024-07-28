@@ -1,4 +1,4 @@
-require("dotenv").config();
+const config = require("./utils/config");
 const express = require("express");
 const blogsRouter = require("./controllers/blogs");
 const mongoose = require("mongoose");
@@ -7,7 +7,7 @@ const morgan = require("morgan");
 const app = express();
 
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(config.MONGODB_URI)
   .then(() => {
     console.info("connected to MongoDB");
   })
@@ -25,8 +25,8 @@ app.use(morgan(tinyMorganWithBody));
 
 app.use("/api/blogs", blogsRouter);
 
-app.listen(process.env.PORT, () => {
-  console.info(`Server running in port ${process.env.PORT}`);
+app.listen(config.PORT, () => {
+  console.info(`Server running in port ${config.PORT}`);
 });
 
 module.exports = app;
