@@ -17,7 +17,7 @@ blogsRouter.post("/", (req, res, next) => {
     });
 });
 
-blogsRouter.get("/", (req, res, next) => {
+blogsRouter.get("/", (req, res) => {
   Blog.find({}).then((blogs) => {
     if (blogs.length) {
       res.status(200).json(blogs);
@@ -25,6 +25,18 @@ blogsRouter.get("/", (req, res, next) => {
       res.status(400).json({ message: "No blogs founded" });
     }
   });
+});
+
+blogsRouter.get("/:id", (req, res, next) => {
+  Blog.findById(req.params.id)
+    .then((blog) => {
+      if (!blog) {
+        res.status(404).end();
+      } else {
+        res.status(200).json(blog);
+      }
+    })
+    .catch((error) => next(error));
 });
 
 module.exports = blogsRouter;

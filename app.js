@@ -2,7 +2,9 @@ const config = require("./utils/config");
 const express = require("express");
 const blogsRouter = require("./controllers/blogs");
 const mongoose = require("mongoose");
+const cors = require("cors");
 const morgan = require("morgan");
+const { unknownEndpoint, errorHandler } = require("./utils/middleware");
 
 const app = express();
 
@@ -16,6 +18,8 @@ mongoose
   });
 
 app.use(express.json());
+app.use(cors());
+// app.use(express.static("dist"));
 
 morgan.token("body", (req) => JSON.stringify(req.body));
 const tinyMorganWithBody =
@@ -25,8 +29,7 @@ app.use(morgan(tinyMorganWithBody));
 
 app.use("/api/blogs", blogsRouter);
 
-app.listen(config.PORT, () => {
-  console.info(`Server running in port ${config.PORT}`);
-});
+app.use(unknownEndpoint);
+app.use(errorHandler);
 
 module.exports = app;
