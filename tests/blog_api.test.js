@@ -43,6 +43,13 @@ test("there are two blogs", async () => {
   assert.strictEqual(response.body.length, initialBlogs.length);
 });
 
+test("should have id, not _id", async () => {
+  const response = await api.get("/api/blogs");
+  const blogKeys = Object.keys(response.body[0]);
+  assert.strictEqual(blogKeys.includes("id"), true);
+  assert.strictEqual(!blogKeys.includes("_id"), true);
+});
+
 after(async () => {
   await mongoose.connection.close();
 });
