@@ -2,7 +2,7 @@ const blogsRouter = require("express").Router();
 const Blog = require("../models/blog");
 
 blogsRouter.post("/", async (req, res) => {
-  if (Object.keys(req.body).length < 3) {
+  if (!req.body.title || !req.body.url) {
     return res.status(400).json({ error: "Missing parameters" });
   }
   const blog = new Blog(req.body);

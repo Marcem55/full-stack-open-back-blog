@@ -1,4 +1,4 @@
-const { test, after, beforeEach } = require("node:test");
+const { test, after, beforeEach, describe } = require("node:test");
 const assert = require("node:assert");
 const mongoose = require("mongoose");
 const app = require("../app");
@@ -30,45 +30,85 @@ beforeEach(async () => {
   await Promise.all(promiseArray);
 });
 
-test("blogs are returned as json", async () => {
-  await api
-    .get("/api/blogs")
-    .expect(200)
-    .expect("Content-Type", /application\/json/);
+describe("GET tests", () => {
+  test("blogs are returned as json", async () => {
+    await api
+      .get("/api/blogs")
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
+  });
+
+  test("should have id, not _id", async () => {
+    const response = await api.get("/api/blogs");
+    const blogKeys = Object.keys(response.body[0]);
+    assert.strictEqual(blogKeys.includes("id"), true);
+    assert.strictEqual(!blogKeys.includes("_id"), true);
+  });
 });
 
-test("there are two blogs", async () => {
-  const response = await api.get("/api/blogs");
+describe("POST tests", () => {
+  test("there are two blogs", async () => {
+    const response = await api.get("/api/blogs");
 
-  assert.strictEqual(response.body.length, initialBlogs.length);
-});
+    assert.strictEqual(response.body.length, initialBlogs.length);
+  });
 
-test("should have id, not _id", async () => {
-  const response = await api.get("/api/blogs");
-  const blogKeys = Object.keys(response.body[0]);
-  assert.strictEqual(blogKeys.includes("id"), true);
-  assert.strictEqual(!blogKeys.includes("_id"), true);
-});
+  test("can create a blog", async () => {
+    const newBlog = {
+      author: "Franco Malacalza",
+      title: "Como viciar en cada juego que veas sin fallar",
+      url: "https://vicio.com/es/viciar-es-para-franquito/",
+      likes: 45,
+    };
 
-test("can create a blog", async () => {
-  const newBlog = {
-    author: "Franco Malacalza",
-    title: "Como viciar en cada juego que veas sin fallar",
-    url: "https://vicio.com/es/viciar-es-para-franquito/",
-    likes: 45,
-  };
+    await api
+      .post("/api/blogs")
+      .send(newBlog)
+      .expect(201)
+      .expect("Content-Type", /application\/json/);
 
-  await api
-    .post("/api/blogs")
-    .send(newBlog)
-    .expect(201)
-    .expect("Content-Type", /application\/json/);
+    const response = await api.get("/api/blogs");
+    assert.strictEqual(response.body.length, initialBlogs.length + 1);
+    delete response.body[response.body.length - 1].id;
 
-  const response = await api.get("/api/blogs");
-  assert.strictEqual(response.body.length, initialBlogs.length + 1);
-  delete response.body[response.body.length - 1].id;
+    assert.deepStrictEqual(response.body[response.body.length - 1], newBlog);
+  });
 
-  assert.deepStrictEqual(response.body[response.body.length - 1], newBlog);
+  test("create a blog without property likes", async () => {
+    const newBlog = {
+      author: "Julieta Malacalza",
+      title: "Aprendiendo python desde 0 para el rubro financiero",
+      url: "https://financeJulieta.com/es/aprender-python-en-finanzas/",
+    };
+
+    await api
+      .post("/api/blogs")
+      .send(newBlog)
+      .expect(201)
+      .expect("Content-Type", /application\/json/);
+
+    const response = await api.get("/api/blogs");
+
+    assert.strictEqual(response.body[response.body.length - 1].likes, 0);
+  });
+
+  test("cannot create without url or title", async () => {
+    const blogWithoutUrl = {
+      author: "Marcelo Malacalza",
+      likes: 18,
+      title: "El mejor blog para hacer testing!",
+    };
+
+    await api.post("/api/blogs").send(blogWithoutUrl).expect(400);
+
+    const blogWithoutTitle = {
+      author: "Marcelo Malacalza",
+      likes: 15,
+      url: "https://testing.com/es/hacer-testing-mejora-tu-codigo/",
+    };
+
+    await api.post("/api/blogs").send(blogWithoutTitle).expect(400);
+  });
 });
 
 after(async () => {
