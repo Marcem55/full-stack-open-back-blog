@@ -111,6 +111,37 @@ describe("POST tests", () => {
   });
 });
 
+describe("DELETE tests", () => {
+  test("delete a blog works", async () => {
+    const blogsBefore = await api.get("/api/blogs");
+
+    const blogToDelete = blogsBefore.body[0];
+
+    await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+    const blogsAfter = await api.get("/api/blogs");
+
+    const blogsTitles = blogsAfter.body.map((blog) => blog.title);
+    assert(!blogsTitles.includes(blogToDelete.title));
+
+    assert.strictEqual(blogsAfter.body.length, initialBlogs.length - 1);
+  });
+});
+
+describe("PUT tests", () => {
+  test("update blog likes", async () => {
+    const blogs = await api.get("/api/blogs");
+    const blogToUpdate = blogs.body[0];
+    const newBlog = {
+      ...blogToUpdate,
+      likes: 5,
+    };
+    await api.put(`/api/blogs/${blogToUpdate.id}`).send(newBlog).expect(200);
+
+    const updatedBlog = await api.get(`/api/blogs/${blogToUpdate.id}`);
+    assert.deepStrictEqual(updatedBlog.body, newBlog);
+  });
+});
+
 after(async () => {
   await mongoose.connection.close();
 });

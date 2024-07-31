@@ -28,4 +28,37 @@ blogsRouter.get("/:id", async (req, res) => {
   }
 });
 
+blogsRouter.put("/:id", async (req, res) => {
+  const id = req.params.id;
+  const blog = await Blog.findById(id);
+
+  if (!blog) {
+    res.status(400).json({ message: "Blog not founded" });
+  } else {
+    const newBlog = {
+      ...blog.toObject(), // to object para poder acceder a los valores y no a la referencia
+      likes: req.body.likes,
+    };
+
+    const updatedBlog = await Blog.findByIdAndUpdate(id, newBlog, {
+      new: true,
+      runValidators: true,
+      context: "query",
+    });
+    res.status(200).json(updatedBlog);
+  }
+});
+
+blogsRouter.delete("/:id", async (req, res) => {
+  const id = req.params.id;
+  const blog = await Blog.findById(id);
+  if (!blog) {
+    res.status(400).json({ message: "Blog already deleted from the database" });
+  } else {
+    const deletedResult = await Blog.findByIdAndDelete(id);
+    console.info("Deleted result:", deletedResult);
+    res.status(204).end();
+  }
+});
+
 module.exports = blogsRouter;
