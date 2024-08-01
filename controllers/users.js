@@ -9,7 +9,7 @@ usersRouter.post("/", async (req, res) => {
   }
 
   const userNameRegex = /^[a-zA-Z0-9]+$/;
-  const passwordRegex = /^[A-Za-z\d@$!%*?&-_]{10,}$/;
+  const passwordRegex = /^(?=.*[A-Z])[A-Za-z\d@$!%*?&-_]{10,}$/;
 
   if (!userNameRegex.test(username)) {
     res.status(400).json({ message: "Username with invalid characters" });
