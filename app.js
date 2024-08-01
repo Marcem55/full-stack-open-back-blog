@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const morgan = require("morgan");
 const { unknownEndpoint, errorHandler } = require("./utils/middleware");
+const usersRouter = require("./controllers/users");
 
 const app = express();
 
@@ -29,6 +30,7 @@ const tinyMorganWithBody =
 app.use(morgan(tinyMorganWithBody));
 
 app.use("/api/blogs", blogsRouter);
+app.use("/api/users", usersRouter);
 
 app.use(unknownEndpoint);
 app.use(errorHandler);
