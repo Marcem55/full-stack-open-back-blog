@@ -1,17 +1,31 @@
 const blogsRouter = require("express").Router();
 const Blog = require("../models/blog");
 const User = require("../models/user");
+const jwt = require("jsonwebtoken");
+const config = require("../utils/config");
+
+const getToken = (req) => {
+  const authorization = req.get("authorization");
+  if (authorization && authorization.startsWith("Bearer ")) {
+    return authorization.replace("Bearer ", "");
+  }
+  return null;
+};
 
 blogsRouter.post("/", async (req, res) => {
+  const decodedToken = jwt.verify(getToken(req), config.SECRET_KEY);
+  if (!decodedToken.id) {
+    return res.status(401).json({ error: "invalid token" });
+  }
+  const user = await User.findById(decodedToken.id);
   if (!req.body.title || !req.body.url) {
     return res.status(400).json({ error: "Missing parameters" });
   }
-  const users = await User.find({});
 
-  const blog = new Blog({ ...req.body, user: users[0].id });
+  const blog = new Blog({ ...req.body, user: user.id });
   const savedBlog = await blog.save();
-  users[0].blogs = users[0].blogs.concat(savedBlog._id);
-  await users[0].save();
+  user.blogs = user.blogs.concat(savedBlog._id);
+  await user.save();
   res.status(201).json(savedBlog);
 });
 
