@@ -5,7 +5,11 @@ const blogsRouter = require("./controllers/blogs");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const morgan = require("morgan");
-const { unknownEndpoint, errorHandler } = require("./utils/middleware");
+const {
+  unknownEndpoint,
+  errorHandler,
+  tokenExtractor,
+} = require("./utils/middleware");
 const usersRouter = require("./controllers/users");
 const loginRouter = require("./controllers/login");
 
@@ -29,6 +33,8 @@ const tinyMorganWithBody =
   ":method :url :status :res[content-length] - :response-time ms :body";
 
 app.use(morgan(tinyMorganWithBody));
+
+app.use(tokenExtractor);
 
 app.use("/api/blogs", blogsRouter);
 app.use("/api/users", usersRouter);
