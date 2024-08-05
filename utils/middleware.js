@@ -1,3 +1,6 @@
+const config = require("./config");
+const jwt = require("jsonwebtoken");
+
 const tokenExtractor = (req, res, next) => {
   const authorization = req.get("authorization");
 
@@ -5,6 +8,21 @@ const tokenExtractor = (req, res, next) => {
     const token = authorization.replace("Bearer ", "");
     req.token = token;
   }
+  next();
+};
+
+const userExtractor = (req, res, next) => {
+  const decodedToken = jwt.verify(req.token, config.SECRET_KEY);
+
+  if (!decodedToken.id) {
+    return res.status(401).json({ error: "invalid token" });
+  }
+
+  req.user = {
+    username: decodedToken.username,
+    id: decodedToken.id,
+  };
+
   next();
 };
 
@@ -39,4 +57,5 @@ module.exports = {
   unknownEndpoint,
   errorHandler,
   tokenExtractor,
+  userExtractor,
 };

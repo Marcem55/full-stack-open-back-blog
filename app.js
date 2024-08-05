@@ -9,6 +9,7 @@ const {
   unknownEndpoint,
   errorHandler,
   tokenExtractor,
+  userExtractor,
 } = require("./utils/middleware");
 const usersRouter = require("./controllers/users");
 const loginRouter = require("./controllers/login");
@@ -36,7 +37,7 @@ app.use(morgan(tinyMorganWithBody));
 
 app.use(tokenExtractor);
 
-app.use("/api/blogs", blogsRouter);
+app.use("/api/blogs", userExtractor, blogsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/login", loginRouter);
 

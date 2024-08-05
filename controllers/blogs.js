@@ -1,27 +1,13 @@
 const blogsRouter = require("express").Router();
 const Blog = require("../models/blog");
 const User = require("../models/user");
-const jwt = require("jsonwebtoken");
-const config = require("../utils/config");
-
-// const getToken = (req) => {
-//   const authorization = req.get("authorization");
-//   if (authorization && authorization.startsWith("Bearer ")) {
-//     return authorization.replace("Bearer ", "");
-//   }
-//   return null;
-// };
 
 blogsRouter.post("/", async (req, res) => {
   if (!req.token) {
     return res.status(401).json({ error: "missing token" });
   }
 
-  const decodedToken = jwt.verify(req.token, config.SECRET_KEY);
-  if (!decodedToken.id) {
-    return res.status(401).json({ error: "invalid token" });
-  }
-  const user = await User.findById(decodedToken.id);
+  const user = await User.findById(req.user.id);
   if (!req.body.title || !req.body.url) {
     return res.status(400).json({ error: "Missing parameters" });
   }
@@ -74,10 +60,18 @@ blogsRouter.put("/:id", async (req, res) => {
 });
 
 blogsRouter.delete("/:id", async (req, res) => {
+  if (!req.token) {
+    return res.status(401).json({ error: "missing token" });
+  }
   const id = req.params.id;
   const blog = await Blog.findById(id);
+
   if (!blog) {
     res.status(400).json({ message: "Blog already deleted from the database" });
+  } else if (blog.toObject().user.toString() !== req.user.id) {
+    res
+      .status(400)
+      .json({ message: "you don't have permissions for delete this blog" });
   } else {
     const deletedResult = await Blog.findByIdAndDelete(id);
     console.info("Deleted result:", deletedResult);
